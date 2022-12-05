@@ -50,7 +50,6 @@ import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.openmetadata.schema.api.CreateEventPublisherJob;
-import org.openmetadata.schema.api.configuration.elasticsearch.ElasticSearchConfiguration;
 import org.openmetadata.schema.entity.data.Dashboard;
 import org.openmetadata.schema.entity.data.Database;
 import org.openmetadata.schema.entity.data.DatabaseSchema;
@@ -68,6 +67,7 @@ import org.openmetadata.schema.entity.services.PipelineService;
 import org.openmetadata.schema.entity.tags.Tag;
 import org.openmetadata.schema.entity.teams.Team;
 import org.openmetadata.schema.entity.teams.User;
+import org.openmetadata.schema.service.configuration.elasticsearch.ElasticSearchConfiguration;
 import org.openmetadata.schema.settings.EventPublisherJob;
 import org.openmetadata.schema.settings.FailureDetails;
 import org.openmetadata.schema.type.ChangeDescription;
@@ -103,7 +103,7 @@ public class ElasticSearchEventPublisher extends AbstractEventPublisher {
     registerElasticSearchJobs();
     this.client = ElasticSearchClientUtils.createElasticSearchClient(esConfig);
     esIndexDefinition = new ElasticSearchIndexDefinition(client, dao);
-    esIndexDefinition.createIndexes();
+    esIndexDefinition.createIndexes(esConfig);
   }
 
   @Override

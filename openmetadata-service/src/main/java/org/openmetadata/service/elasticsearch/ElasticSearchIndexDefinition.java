@@ -26,6 +26,7 @@ import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.client.indices.PutMappingRequest;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.openmetadata.schema.service.configuration.elasticsearch.ElasticSearchConfiguration;
 import org.openmetadata.schema.settings.EventPublisherJob;
 import org.openmetadata.schema.settings.FailureDetails;
 import org.openmetadata.schema.type.TagLabel;
@@ -81,9 +82,9 @@ public class ElasticSearchIndexDefinition {
     }
   }
 
-  public void createIndexes() {
+  public void createIndexes(ElasticSearchConfiguration esConfig) {
     for (ElasticSearchIndexType elasticSearchIndexType : ElasticSearchIndexType.values()) {
-      createIndex(elasticSearchIndexType);
+      createIndex(elasticSearchIndexType, esConfig.getSearchIndexMappingLanguage());
     }
   }
 
@@ -107,13 +108,13 @@ public class ElasticSearchIndexDefinition {
     return exists;
   }
 
-  public boolean createIndex(ElasticSearchIndexType elasticSearchIndexType) {
+  public boolean createIndex(ElasticSearchIndexType elasticSearchIndexType, String lang) {
     try {
       GetIndexRequest gRequest = new GetIndexRequest(elasticSearchIndexType.indexName);
       gRequest.local(false);
       boolean exists = client.indices().exists(gRequest, RequestOptions.DEFAULT);
       if (!exists) {
-        String elasticSearchIndexMapping = getIndexMapping(elasticSearchIndexType);
+        String elasticSearchIndexMapping = getIndexMapping(elasticSearchIndexType, lang);
         CreateIndexRequest request = new CreateIndexRequest(elasticSearchIndexType.indexName);
         request.source(elasticSearchIndexMapping, XContentType.JSON);
         CreateIndexResponse createIndexResponse = client.indices().create(request, RequestOptions.DEFAULT);
@@ -184,7 +185,7 @@ public class ElasticSearchIndexDefinition {
     elasticSearchIndexes.put(indexType, elasticSearchIndexStatus);
   }
 
-  public String getIndexMapping(ElasticSearchIndexType elasticSearchIndexType) throws IOException {
+  public String getIndexMapping(ElasticSearchIndexType elasticSearchIndexType, String lang) throws IOException {
     InputStream in = ElasticSearchIndexDefinition.class.getResourceAsStream(elasticSearchIndexType.indexMappingFile);
     return new String(in.readAllBytes());
   }
