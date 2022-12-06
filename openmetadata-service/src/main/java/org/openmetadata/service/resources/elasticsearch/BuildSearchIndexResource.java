@@ -47,6 +47,7 @@ import org.openmetadata.schema.api.CreateEventPublisherJob;
 import org.openmetadata.schema.api.CreateEventPublisherJob.RunMode;
 import org.openmetadata.schema.entity.data.Table;
 import org.openmetadata.schema.entity.teams.User;
+import org.openmetadata.schema.service.configuration.elasticsearch.ElasticSearchConfiguration;
 import org.openmetadata.schema.settings.EventPublisherJob;
 import org.openmetadata.schema.settings.FailureDetails;
 import org.openmetadata.schema.settings.Stats;
@@ -82,6 +83,7 @@ public class BuildSearchIndexResource {
   private final Authorizer authorizer;
   private final ExecutorService threadScheduler;
   private final UserRepository userRepository;
+  private ElasticSearchConfiguration esConfig;
 
   public BuildSearchIndexResource(CollectionDAO dao, Authorizer authorizer) {
     this.dao = dao;
@@ -96,6 +98,7 @@ public class BuildSearchIndexResource {
     if (config.getElasticSearchConfiguration() != null) {
       this.client = ElasticSearchClientUtils.createElasticSearchClient(config.getElasticSearchConfiguration());
       this.elasticSearchIndexDefinition = new ElasticSearchIndexDefinition(client, dao);
+      this.esConfig = config.getElasticSearchConfiguration();
     }
   }
 
@@ -269,7 +272,7 @@ public class BuildSearchIndexResource {
       // Delete index
       elasticSearchIndexDefinition.deleteIndex(indexType);
       // Create index
-      elasticSearchIndexDefinition.createIndex(indexType);
+      elasticSearchIndexDefinition.createIndex(indexType, esConfig.getSearchIndexMappingLanguage().value());
     }
 
     // Start fetching a list of Entities and pushing them to ES
@@ -317,7 +320,7 @@ public class BuildSearchIndexResource {
       // Delete index
       elasticSearchIndexDefinition.deleteIndex(indexType);
       // Create index
-      elasticSearchIndexDefinition.createIndex(indexType);
+      elasticSearchIndexDefinition.createIndex(indexType, esConfig.getSearchIndexMappingLanguage().value());
     }
 
     // Start fetching a list of Entities and pushing them to ES
